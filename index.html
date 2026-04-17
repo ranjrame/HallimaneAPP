@@ -304,7 +304,7 @@ input{-webkit-appearance:none;-webkit-border-radius:0}
     <div class="tab-pane" id="mt-settings">
       <div class="settings-body">
         <div class="fg"><label>Hotel name (Kannada)</label><input class="fi" id="cfg-kn" placeholder="ಹಳ್ಳಿಮನೆ ಬಿರಿಯಾನಿ"></div>
-        <div class="fg"><label>Hotel name (English)</label><input class="fi" id="cfg-en" placeholder="Hallimane Biryani"></div>
+        <div class="fg"><label>Hotel name (English)</label><input class="fi" id="cfg-en" placeholder="Hallimane Biriyani"></div>
         <div class="fg"><label>Address</label><input class="fi" id="cfg-addr" placeholder="Bangalore"></div>
         <div class="fg"><label>Phone</label><input class="fi" id="cfg-phone" placeholder="+91 98765 43210"></div>
         <div class="fg"><label>GSTIN (optional)</label><input class="fi" id="cfg-gstin" placeholder="29ABCDE1234F1Z5"></div>
@@ -527,7 +527,7 @@ function changeApiUrl() {
 // ═══════════════════════════════════════════════════════════
 //  APP STATE
 // ═══════════════════════════════════════════════════════════
-const DEF_CFG = {nameKn:'ಹಳ್ಳಿಮನೆ ಬಿರಿಯಾನಿ',nameEn:'Hallimane Biryani',addr:'Bangalore',phone:'+91 98765 43210',gstin:'',tax:0};
+const DEF_CFG = {nameKn:'ಹಳ್ಳಿಮನೆ ಬಿರಿಯಾನಿ',nameEn:'Hallimane Biriyani',addr:'Bangalore',phone:'+91 98765 43210',gstin:'',tax:0};
 const DEF_MENU = [
   {id:1,kn:'ಚಿಕನ್ ಬಿರಿಯಾನಿ',en:'Chicken Biryani',cat:'Biryani',full:220,half:130},
   {id:2,kn:'ಮಟನ್ ಬಿರಿಯಾನಿ',en:'Mutton Biryani',cat:'Biryani',full:280,half:160},
@@ -878,7 +878,7 @@ function buildReceipt(id){
   const ts=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
   const t=tables.find(x=>x.id===id);const L='-'.repeat(W),DL='='.repeat(W);
   return [
-    center58(cfg.nameEn||'Hallimane Biryani'),
+    center58(cfg.nameEn||'Hallimane Biriyani'),
     center58(cfg.addr||''),center58(cfg.phone||''),DL,
     row58('Bill No:','#'+billNo),row58('Table:',t?tLabel(t):''+id),
     row58('Date:',ds),row58('Time:',ts),DL,row58('Item','Amt'),L,
@@ -891,7 +891,7 @@ function buildReceipt(id){
     ...(tax>0?[row58('Tax ('+taxPct+'%)','Rs.'+tax)]:[]),
     DL,row58('** TOTAL **','Rs.'+grand),DL,
     cfg.gstin?center58('GSTIN: '+cfg.gstin):'',
-    '',center58('Thank you! Please visit again'),center58('- Hallimane Biryani -'),'','',
+    '',center58('Thank you! Please visit again'),center58('- Hallimane Biriyani -'),'','',
   ].join('\n');
 }
 
@@ -926,8 +926,8 @@ function buildPrintBytes(id){
   const out=[];
   const push=(...c)=>c.forEach(x=>Array.isArray(x)?out.push(...x):out.push(x));
   const text=s=>push(...utf8b(s+'\n'));
-  push(...CMD.INIT,...CMD.LS,...CMD.AC,...CMD.SB,...CMD.BON);
-  text(cfg.nameEn||'Hallimane Biryani');
+  push(...CMD.INIT,...CMD.LS,...CMD.AC,...CMD.SN,...CMD.BON);
+  text(cfg.nameEn||'Hallimane Biriyani');
   push(...CMD.SN,...CMD.BOF);
   if(cfg.addr)text(cfg.addr);if(cfg.phone)text(cfg.phone);
   push(...CMD.AL);text(DL);
