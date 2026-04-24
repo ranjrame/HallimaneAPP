@@ -203,6 +203,17 @@ input,select,textarea{-webkit-appearance:none;font-family:inherit}
 .img-preview{width:56px;height:56px;border-radius:10px;object-fit:cover;background:var(--s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid var(--b2)}
 .img-preview img{width:100%;height:100%;border-radius:9px;object-fit:cover}
 
+/* CATEGORY IMAGE in menu header */
+.mcat-img{width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid var(--b2)}
+.mcat-img-ph{width:36px;height:36px;border-radius:8px;background:var(--s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid var(--b2)}
+
+/* CATEGORY MANAGE rows */
+.cat-row{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:var(--r)}
+.cat-img-thumb{width:44px;height:44px;border-radius:9px;object-fit:cover;flex-shrink:0;border:1px solid var(--b2);background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:20px}
+.cat-img-thumb img{width:100%;height:100%;border-radius:8px;object-fit:cover}
+.cat-upload-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;border:1px dashed var(--b2);background:transparent;color:var(--ac);font-size:11px;cursor:pointer;font-family:inherit;transition:all .15s}
+.cat-upload-btn:active{border-color:var(--ac);background:var(--abg)}
+
 /* TOAST */
 #toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);background:#1a3d0a;color:#b8f0c0;padding:9px 17px;border-radius:9px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;border:1px solid #2d6b1f;max-width:90vw;text-align:center}
 
@@ -278,6 +289,7 @@ input,select,textarea{-webkit-appearance:none;font-family:inherit}
   <div class="page" id="pg-manage">
     <div class="tabrow">
       <button class="tabtn act" onclick="switchTab('tp-items',this)">Items</button>
+      <button class="tabtn" onclick="switchTab('tp-cats',this)">Categories</button>
       <button class="tabtn" onclick="switchTab('tp-tables',this)">Tables</button>
       <button class="tabtn" onclick="switchTab('tp-settings',this)">Settings</button>
     </div>
@@ -287,6 +299,18 @@ input,select,textarea{-webkit-appearance:none;font-family:inherit}
         <button class="btn btn-ac btn-sm" onclick="openAddItem()">+ Add Item</button>
       </div>
       <div class="msec" id="item-list"></div>
+      <div style="height:70px"></div>
+    </div>
+
+    <!-- CATEGORIES TAB -->
+    <div class="tpane" id="tp-cats">
+      <div style="padding:11px 14px 6px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:13px;font-weight:600">Category Images</div>
+          <div style="font-size:11px;color:var(--mt);margin-top:2px">Add a logo or photo for each food category</div>
+        </div>
+      </div>
+      <div class="msec" id="cat-list"></div>
       <div style="height:70px"></div>
     </div>
     <div class="tpane" id="tp-tables">
@@ -372,6 +396,36 @@ input,select,textarea{-webkit-appearance:none;font-family:inherit}
   </div>
 </div>
 
+
+<!-- EDIT CATEGORY IMAGE SHEET -->
+<div class="ov" id="ov-cat">
+  <div class="sh">
+    <div class="sh-handle"></div>
+    <div class="sh-head">
+      <div><div class="sh-title">Category Image</div><div style="font-size:11px;color:var(--mt);margin-top:2px" id="ov-cat-name"></div></div>
+      <button class="sh-x" onclick="closeOv('ov-cat')">✕</button>
+    </div>
+    <div class="sh-body">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:4px 0 8px">
+        <div id="cat-img-big" style="width:100px;height:100px;border-radius:16px;background:var(--s3);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:44px;overflow:hidden"></div>
+        <div style="font-size:11px;color:var(--mt)">Shown in the menu category header</div>
+      </div>
+      <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:16px;border:1.5px dashed var(--b2);border-radius:var(--r);cursor:pointer;background:var(--s1)">
+        <span style="font-size:28px">📷</span>
+        <span style="font-size:13px;font-weight:600;color:var(--tx)">Upload from Camera / Gallery</span>
+        <span style="font-size:11px;color:var(--mt)">Tap to choose a photo</span>
+        <input type="file" accept="image/*" style="display:none" id="cat-file-input" onchange="handleCatFile(this)">
+      </label>
+      <div class="fg"><label>Or paste an image URL</label><input class="fi" id="cat-img-url" placeholder="https://example.com/biryani.jpg" oninput="previewCatImg(this.value)"></div>
+      <button class="btn btn-rd btn-sm" onclick="removeCatImg()" style="align-self:flex-start">✕ Remove image</button>
+    </div>
+    <div class="sh-acts">
+      <button class="btn btn-out" onclick="closeOv('ov-cat')">Cancel</button>
+      <button class="btn btn-ac" onclick="saveCatImg()">Save Image</button>
+    </div>
+  </div>
+</div>
+
 <!-- EDIT TABLE NAME SHEET -->
 <div class="ov" id="ov-tname">
   <div class="sh">
@@ -412,7 +466,7 @@ input,select,textarea{-webkit-appearance:none;font-family:inherit}
 var SK = {
   url:'pos_api_url', tables:'pos_tables', orders:'pos_orders',
   menu:'pos_menu',   cfg:'pos_cfg',       billno:'pos_billno',
-  dayrev:'pos_dayrev', daybills:'pos_daybills'
+  dayrev:'pos_dayrev', daybills:'pos_daybills', catImgs:'pos_cat_imgs'
 };
 function sg(k,d){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
 function ss(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ console.error(e); } }
@@ -447,6 +501,7 @@ var API_URL = localStorage.getItem(SK.url) || '';
 var tables  = sg(SK.tables, [{id:1,name:''},{id:2,name:''},{id:3,name:''},{id:4,name:''},{id:5,name:''},{id:6,name:''},{id:7,name:''},{id:8,name:''},{id:9,name:''}]);
 var orders  = sg(SK.orders, {});
 var menu    = sg(SK.menu, DMENU);
+var catImgs = sg(SK.catImgs, {}); // { 'Biryani': 'data:...' or 'https://...' }
 var cfg     = Object.assign({}, DCFG, sg(SK.cfg, {}));
 var billNo  = sg(SK.billno, 1001);
 var sel     = null; // selected table id
@@ -460,31 +515,74 @@ if (tables.length && typeof tables[0] === 'number') tables = tables.map(function
 tables.forEach(function(t){ if (!orders[t.id]) orders[t.id] = []; });
 
 // ════════════════════════════════════════════════════════
-//  GOOGLE SHEETS API
+//  GOOGLE SHEETS API  — CORS-safe implementation
+//  GET  → JSONP via <script> tag (bypasses CORS + redirect)
+//  POST → no-cors fetch (fire-and-forget, no response needed)
 // ════════════════════════════════════════════════════════
+
+// JSONP counter for unique callback names
+var _jcb = 0;
+
 function apiGet(params, cb) {
-  if (!API_URL) { cb(null, 'No API URL'); return; }
-  var url = API_URL + '?' + Object.keys(params).map(function(k){ return k+'='+encodeURIComponent(params[k]); }).join('&');
-  fetch(url, {redirect:'follow'})
-    .then(function(r){ return r.text(); })
-    .then(function(t){
-      try { cb(JSON.parse(t), null); }
-      catch(e) { cb(null, 'Bad JSON: '+t.slice(0,200)); }
-    })
-    .catch(function(e){ cb(null, e.message); });
+  if (!API_URL) { cb(null, 'No API URL set'); return; }
+
+  // Build a unique callback name
+  var cbName = '__jcb' + (++_jcb);
+  var done = false;
+
+  // Timeout after 15 seconds
+  var timer = setTimeout(function() {
+    if (done) return;
+    done = true;
+    try { delete window[cbName]; } catch(e) {}
+    var old = document.getElementById(cbName);
+    if (old) old.parentNode.removeChild(old);
+    cb(null, 'Request timed out — check your Apps Script URL and deployment');
+  }, 15000);
+
+  // Register the callback
+  window[cbName] = function(data) {
+    if (done) return;
+    done = true;
+    clearTimeout(timer);
+    try { delete window[cbName]; } catch(e) {}
+    var old = document.getElementById(cbName);
+    if (old) old.parentNode.removeChild(old);
+    cb(data, null);
+  };
+
+  // Add callback param to URL so Apps Script returns JSONP
+  params.callback = cbName;
+  var qs = Object.keys(params).map(function(k) {
+    return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+  }).join('&');
+
+  var script = document.createElement('script');
+  script.id = cbName;
+  script.src = API_URL + '?' + qs;
+  script.onerror = function() {
+    if (done) return;
+    done = true;
+    clearTimeout(timer);
+    try { delete window[cbName]; } catch(e) {}
+    script.parentNode.removeChild(script);
+    cb(null, 'Script load failed — verify the /exec URL is correct');
+  };
+  document.head.appendChild(script);
 }
 
 function apiPost(body, cb) {
   if (!API_URL) { if (cb) cb(null, 'No API URL'); return; }
+  // Use no-cors mode — we can't read the response but data gets written to Sheets
   var form = new URLSearchParams();
   form.set('payload', JSON.stringify(body));
-  fetch(API_URL, {method:'POST', body:form, redirect:'follow'})
-    .then(function(r){ return r.text(); })
-    .then(function(t){
-      try { if (cb) cb(JSON.parse(t), null); }
-      catch(e) { if (cb) cb(null, 'Bad JSON: '+t.slice(0,100)); }
-    })
-    .catch(function(e){ if (cb) cb(null, e.message); });
+  fetch(API_URL, {
+    method: 'POST',
+    mode:   'no-cors',      // ← key fix: skips preflight, accepts opaque response
+    body:   form
+  })
+  .then(function() { if (cb) cb({ok:true}, null); })
+  .catch(function(e) { if (cb) cb(null, e.message); });
 }
 
 function setSbar(state, msg) {
@@ -562,19 +660,46 @@ function testURL() {
   if (url.indexOf('script.google.com') < 0) { showSetupMsg('URL must be from script.google.com'); return; }
   var btn = document.querySelector('[onclick="testURL()"]');
   btn.textContent = 'Testing…'; btn.disabled = true;
-  fetch(url+'?action=ping', {redirect:'follow'})
-    .then(function(r){ return r.text(); })
-    .then(function(t){
-      try {
-        var d = JSON.parse(t);
-        if (d.ok) {
-          var ok = d.sheetIdSet;
-          showSetupMsg(ok ? '✅ Connected! Tap Connect to start.' : '⚠️ Connected but SHEET_ID not set in Code.gs!', ok);
-        } else { showSetupMsg('❌ '+(d.error||'Script error')); }
-      } catch(e) { showSetupMsg('❌ Not JSON. Got: '+t.slice(0,150)); }
-      btn.textContent = '🔍 Test'; btn.disabled = false;
-    })
-    .catch(function(e){ showSetupMsg('❌ '+e.message+'\n\nCheck:\n1. SHEET_ID set?\n2. Deployed as Web App?\n3. Access = Anyone?\n4. Using /exec URL?'); btn.textContent='🔍 Test'; btn.disabled=false; });
+
+  // Use JSONP to test (same CORS-safe approach as apiGet)
+  var cbName = '__pingcb';
+  var done = false;
+  var timer = setTimeout(function() {
+    if (done) return; done = true;
+    try { delete window[cbName]; } catch(e) {}
+    var s = document.getElementById(cbName); if (s) s.parentNode.removeChild(s);
+    showSetupMsg('❌ Timed out.\n\nChecklist:\n1. Did you set SHEET_ID in Code.gs?\n2. Deployed as Web App?\n3. Who has access = Anyone?\n4. Did you copy the /exec URL (not /dev)?\n5. After changing code, did you deploy a NEW version?');
+    btn.textContent = '🔍 Test'; btn.disabled = false;
+  }, 12000);
+
+  window[cbName] = function(data) {
+    if (done) return; done = true;
+    clearTimeout(timer);
+    try { delete window[cbName]; } catch(e) {}
+    var s = document.getElementById(cbName); if (s) s.parentNode.removeChild(s);
+    if (data && data.ok) {
+      var sheetOk = data.sheetIdSet === true;
+      showSetupMsg(
+        sheetOk ? '✅ Connected! Tap Connect to start.' : '⚠️ Script works but SHEET_ID is not set in Code.gs!',
+        sheetOk
+      );
+    } else {
+      showSetupMsg('❌ Script error: ' + ((data && data.error) || 'Unknown'));
+    }
+    btn.textContent = '🔍 Test'; btn.disabled = false;
+  };
+
+  var script = document.createElement('script');
+  script.id = cbName;
+  script.src = url + '?action=ping&callback=' + cbName;
+  script.onerror = function() {
+    if (done) return; done = true;
+    clearTimeout(timer);
+    try { delete window[cbName]; } catch(e) {}
+    showSetupMsg('❌ Could not load script.\n\nMake sure:\n• The URL ends with /exec\n• Access is set to "Anyone"\n• The script is deployed (not just saved)');
+    btn.textContent = '🔍 Test'; btn.disabled = false;
+  };
+  document.head.appendChild(script);
 }
 
 function connectSheets() {
@@ -605,7 +730,7 @@ function navTo(p) {
   document.querySelectorAll('.bni').forEach(function(x){ x.classList.remove('act'); });
   document.getElementById('pg-'+p).classList.add('act');
   document.getElementById('nav-'+p).classList.add('act');
-  if (p==='manage') { renderItemManage(); renderTableManage(); loadSettingsForm(); }
+  if (p==='manage') { renderItemManage(); renderCatManage(); renderTableManage(); loadSettingsForm(); }
   if (p==='order')  renderOrder();
   if (p==='tables') renderTables();
   if (p==='menu')   renderMenu(document.getElementById('msearch').value);
@@ -742,10 +867,19 @@ function renderMenu(q){
   var html='';
   Object.keys(cats).forEach(function(cat){
     var its=cats[cat], isCol=collCats[cat]===true;
-    var cid='mc_'+cat.replace(/\s+/g,'_');
+    var cid='mc_'+cat.replace(/\W/g,'_');
+    var catImg=catImgs[cat]||'';
+    // Category bar with image
     html+='<div class="mcat-sec'+(isCol?' col':'')+'" id="'+cid+'">';
     html+='<div class="mcat-bar" onclick="toggleCat(\''+cat+'\',\''+cid+'\')">';
-    html+='<div class="mcat-lbl"><span class="mcat-name">'+cat+'</span><span class="mcat-cnt">'+its.length+'</span></div>';
+    html+='<div class="mcat-lbl">';
+    // Category image or emoji placeholder
+    if(catImg){
+      html+='<img class="mcat-img" src="'+catImg+'" onerror="this.style.display=\'none\'">';
+    } else {
+      html+='<div class="mcat-img-ph">🍽</div>';
+    }
+    html+='<span class="mcat-name">'+cat+'</span><span class="mcat-cnt">'+its.length+'</span></div>';
     html+='<div class="mcat-tog"><span>'+(isCol?'Show':'Hide')+'</span><span class="arr">▼</span></div></div>';
     html+='<div class="mcat-items">';
     its.forEach(function(m){
@@ -809,6 +943,106 @@ function askRemoveTable(id){
     ss(SK.tables,tables); ss(SK.orders,orders); pushTables();
     renderTables(); renderTableManage(); toast('Table removed');
   });
+}
+
+// ════════════════════════════════════════════════════════
+//  CATEGORY IMAGES
+// ════════════════════════════════════════════════════════
+var editingCat = ''; // current category being edited
+var catImgData = ''; // temp image data (base64 or URL) while editing
+
+function renderCatManage(){
+  // Get all unique categories from menu
+  var cats = [];
+  menu.forEach(function(m){ if(m.cat && cats.indexOf(m.cat)<0) cats.push(m.cat); });
+  if(!cats.length){ document.getElementById('cat-list').innerHTML='<div style="padding:20px;text-align:center;color:var(--mt);font-size:13px">No categories yet. Add items first.</div>'; return; }
+
+  document.getElementById('cat-list').innerHTML = cats.map(function(cat){
+    var img = catImgs[cat]||'';
+    var thumbHtml = img
+      ? '<img src="'+img+'" style="width:44px;height:44px;border-radius:9px;object-fit:cover;border:1px solid var(--b2)" onerror="this.parentElement.innerHTML=\'🍽\'">'
+      : '<span style="font-size:22px">🍽</span>';
+    return '<div class="cat-row">'+
+      '<div class="cat-img-thumb">'+thumbHtml+'</div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:14px;font-weight:700">'+cat+'</div>'+
+        '<div style="font-size:11px;color:var(--mt);margin-top:2px">'+
+          (img?'Image set':'No image yet')+
+          ' · '+menu.filter(function(m){return m.cat===cat;}).length+' items'+
+        '</div>'+
+      '</div>'+
+      '<button class="btn btn-ac btn-sm" onclick="openCatImgEditor(\''+cat.replace(/'/g,"\\'")+'\')" style="white-space:nowrap">'+
+        (img?'Change':'+ Add Image')+
+      '</button>'+
+    '</div>';
+  }).join('');
+}
+
+function openCatImgEditor(cat){
+  editingCat = cat;
+  catImgData  = catImgs[cat]||'';
+  document.getElementById('ov-cat-name').textContent = cat;
+  document.getElementById('cat-img-url').value = (catImgData.indexOf('data:')<0)?catImgData:'';
+  document.getElementById('cat-file-input').value = '';
+  // Show preview
+  var big = document.getElementById('cat-img-big');
+  if(catImgData){
+    big.innerHTML='<img src="'+catImgData+'" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML=\'🍽\'">';
+  } else {
+    big.innerHTML='🍽';
+  }
+  openOv('ov-cat');
+}
+
+function previewCatImg(url){
+  catImgData = url;
+  var big = document.getElementById('cat-img-big');
+  if(url){ big.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML=\'🍽\'">'; }
+  else { big.innerHTML='🍽'; }
+}
+
+function handleCatFile(input){
+  var file=input.files[0]; if(!file)return;
+  // Compress/resize before storing to keep localStorage small
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var canvas=document.createElement('canvas');
+      var MAX=400; // max dimension
+      var w=img.width, h=img.height;
+      if(w>h){ if(w>MAX){h=Math.round(h*MAX/w);w=MAX;} }
+      else    { if(h>MAX){w=Math.round(w*MAX/h);h=MAX;} }
+      canvas.width=w; canvas.height=h;
+      var ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      catImgData=canvas.toDataURL('image/jpeg',0.75);
+      document.getElementById('cat-img-url').value='';
+      var big=document.getElementById('cat-img-big');
+      big.innerHTML='<img src="'+catImgData+'" style="width:100%;height:100%;object-fit:cover">';
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveCatImg(){
+  if(editingCat){
+    if(catImgData){ catImgs[editingCat]=catImgData; }
+    else           { delete catImgs[editingCat]; }
+    ss(SK.catImgs,catImgs);
+    closeOv('ov-cat');
+    renderCatManage();
+    renderMenu(document.getElementById('msearch').value);
+    toast('Image saved for '+editingCat);
+  }
+}
+
+function removeCatImg(){
+  delete catImgs[editingCat];
+  catImgData='';
+  document.getElementById('cat-img-big').innerHTML='🍽';
+  document.getElementById('cat-img-url').value='';
 }
 
 // Item add/edit
@@ -1047,6 +1281,7 @@ function switchTab(id,btn){
   document.querySelectorAll('.tpane').forEach(function(p){p.classList.remove('act');});
   document.querySelectorAll('.tabtn').forEach(function(b){b.classList.remove('act');});
   document.getElementById(id).classList.add('act'); btn.classList.add('act');
+  if(id==='tp-cats') renderCatManage();
 }
 
 function toast(msg){
