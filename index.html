@@ -697,21 +697,6 @@ function testURL() {
     btn.textContent = 'Test'; btn.disabled = false;
   });
 }
-    btn.textContent = '🔍 Test'; btn.disabled = false;
-  };
-
-  var script = document.createElement('script');
-  script.id = cbName;
-  script.src = url + '?action=ping&callback=' + cbName;
-  script.onerror = function() {
-    if (done) return; done = true;
-    clearTimeout(timer);
-    try { delete window[cbName]; } catch(e) {}
-    showSetupMsg('❌ Could not load script.\n\nMake sure:\n• The URL ends with /exec\n• Access is set to "Anyone"\n• The script is deployed (not just saved)');
-    btn.textContent = '🔍 Test'; btn.disabled = false;
-  };
-  document.head.appendChild(script);
-}
 
 function connectSheets() {
   var url = document.getElementById('setup-url').value.trim();
